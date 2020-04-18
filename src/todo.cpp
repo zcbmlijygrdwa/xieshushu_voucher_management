@@ -3,6 +3,7 @@
 #include <set>
 #include "utilities.hpp"
 #include "record.hpp"
+#include "xlsxwriter.h"
 
 int main(int argc, char** argv)
 {
@@ -115,6 +116,64 @@ int main(int argc, char** argv)
             j += 5;
         }
     }
+
+    //test excel write
+    /* Create a new workbook and add a worksheet. */
+    lxw_workbook  *workbook  = workbook_new("../files/demo.xlsx");
+    lxw_worksheet *worksheet = workbook_add_worksheet(workbook, NULL);
+
+    /* Add a format. */
+    lxw_format *format = workbook_add_format(workbook);
+
+    /* Set the bold property for the format */
+    format_set_bold(format);
+
+    /* Change the column width for clarity. */
+    worksheet_set_column(worksheet, 0, 0, 20, NULL);
+
+    /* Write some simple text. */
+    worksheet_write_string(worksheet, 0, 0, "记账凭证", NULL);
+
+    /* Write some simple text. */
+    worksheet_write_string(worksheet, 1, 0, "单位：广西新昊物流有限责任公司", NULL);
+    worksheet_write_string(worksheet, 1, 1, "日期：2020-01-31", NULL);
+    worksheet_write_string(worksheet, 1, 2, "附单据数：1", NULL);
+
+    worksheet_write_string(worksheet, 2, 0, "记账凭证号", NULL);
+    worksheet_write_string(worksheet, 2, 1, "摘要", NULL);
+    worksheet_write_string(worksheet, 2, 2, "科目号", NULL);
+    worksheet_write_string(worksheet, 2, 3, "科目名称", NULL);
+    worksheet_write_string(worksheet, 2, 4, "借方", NULL);
+    worksheet_write_string(worksheet, 2, 5, "贷方", NULL);
+
+    AccountingVoucher temp_voucher = id_voucher_map[id_vec[0]];
+    for(int i = 0 ; i < temp_voucher.size() ; ++i)
+    {
+        Record record = temp_voucher[i];
+        worksheet_write_string(worksheet, 3+i, 0, record.voucher_id.c_str(), NULL);
+        worksheet_write_string(worksheet, 3+i, 1, record.description.c_str(), NULL);
+        worksheet_write_string(worksheet, 3+i, 2, record.item_number.c_str(), NULL);
+        worksheet_write_string(worksheet, 3+i, 3, record.item_name.c_str(), NULL);
+        worksheet_write_number(worksheet, 3+i, 4, record.lend, NULL);
+        worksheet_write_number(worksheet, 3+i, 5, record.borrow, NULL);
+    }
+
+    worksheet_write_string(worksheet, 2+temp_voucher.size() + 1, 0, "合计：", NULL);
+    worksheet_write_number(worksheet, 2+temp_voucher.size() + 1, 1, temp_voucher.total_lend, NULL);
+    worksheet_write_number(worksheet, 2+temp_voucher.size() + 1, 4, temp_voucher.total_borrow, NULL);
+    worksheet_write_number(worksheet, 2+temp_voucher.size() + 1, 5, temp_voucher.total_borrow, NULL);
+
+    ///* Text with formatting. */
+    //worksheet_write_string(worksheet, 1, 0, "World", format);
+
+    ///* Write some numbers. */
+    //worksheet_write_number(worksheet, 2, 0, 123,     NULL);
+    //worksheet_write_number(worksheet, 3, 0, 123.456, NULL);
+
+    ///* Insert an image. */
+    //worksheet_insert_image(worksheet, 1, 2, "logo.png");
+
+    workbook_close(workbook);
 
     return 0;
 }
